@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: #0a0814;
+  color: #e8e4f0;
+  overflow-x: hidden;
+}
+
+/* 全局深色星空背景 + 元素辉光氛围 */
+.app-bg {
+  position: relative;
+  min-height: 100%;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(183, 138, 255, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 90% 20%,
+      rgba(76, 194, 241, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 10% 30%,
+      rgba(239, 121, 56, 0.1),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #0e0b1a 0%, #0a0814 40%, #08060f 100%);
+}
+
+/* 细密噪点纹理，增加质感 */
+.app-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+/* 玻璃拟态卡片基底 */
+.glass {
+  background: linear-gradient(
+    180deg,
+    rgba(36, 28, 68, 0.55),
+    rgba(14, 11, 26, 0.65)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(183, 138, 255, 0.12);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(14, 11, 26, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4a3a7a, #2a2148);
+  border-radius: 8px;
+  border: 2px solid rgba(14, 11, 26, 0.6);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #5d4a9c, #382c5e);
+}
+
+/* 选中文字颜色 */
+::selection {
+  background: rgba(245, 215, 110, 0.3);
+  color: #fff;
+}
+
+/* 标题装饰下划线 */
+.title-underline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 215, 110, 0.8),
+    rgba(183, 138, 255, 0.6),
+    transparent
+  );
+}

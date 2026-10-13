@@ -21,12 +21,12 @@ for (const [path, url] of Object.entries(PORTRAIT_MODULES)) {
 }
 
 /**
- * 原神角色数据（截至 6.7 版本主要可玩角色）
+ * 原神角色数据（截至 7.1 版本全部实装可玩角色，不含旅行者多元素变体与派蒙）
  *
  * 头像来源（apiId 字段，仅作为下载脚本的历史参考，运行时不再使用远程 URL）：
  *  - "xxx"        → genshin.jmp.blue（4.x 及之前实装角色 + 旅行者）
- *  - "enka:Name"  → enka.network（5.x~6.7 较新角色 + 部分 NPC）
- *  - "bwiki:id"   → patchwiki.biligame.com（enka/jmp.blue 均未收录的角色：丝柯克/欧洛伦/桑多涅）
+ *  - "enka:Name"  → enka.network（5.x~7.x 较新角色）
+ *  - "bwiki:Name" → patchwiki.biligame.com（enka/jmp.blue 均未收录的角色）
  *
  * 离线模式：所有头像已下载到 src/portraits/ 并在构建时内联为 base64 打包进单文件 HTML
  */
@@ -38,12 +38,10 @@ export const CHARACTERS: Character[] = [
   { id: "klee", name: "可莉", element: "pyro", rarity: 5, weapon: "catalyst", region: "蒙德", apiId: "klee" },
   { id: "albedo", name: "阿贝多", element: "geo", rarity: 5, weapon: "sword", region: "蒙德", apiId: "albedo" },
   { id: "eula", name: "优菈", element: "cryo", rarity: 5, weapon: "claymore", region: "蒙德", apiId: "eula" },
-  { id: "aloy", name: "埃洛伊", element: "cryo", rarity: 5, weapon: "bow", region: "蒙德", apiId: "aloy" },
   { id: "diluc", name: "迪卢克", element: "pyro", rarity: 5, weapon: "claymore", region: "蒙德", apiId: "diluc" },
   { id: "durin", name: "杜林", element: "pyro", rarity: 5, weapon: "sword", region: "蒙德", apiId: "enka:Durin" },
   { id: "varka", name: "法尔伽", element: "anemo", rarity: 5, weapon: "claymore", region: "蒙德", apiId: "enka:Varka" },
-  { id: "alice", name: "艾莉丝", element: "pyro", rarity: 5, weapon: "catalyst", region: "蒙德", apiId: "enka:Alice" },
-  { id: "lohen", name: "洛恩", element: "cryo", rarity: 5, weapon: "bow", region: "蒙德", apiId: "enka:Lohen" },
+  { id: "lohen", name: "洛恩", element: "cryo", rarity: 5, weapon: "polearm", region: "蒙德", apiId: "enka:Lohen" },
   { id: "traveler", name: "旅行者", element: "anemo", rarity: 5, weapon: "sword", region: "蒙德", apiId: "traveler-anemo" },
   { id: "amber", name: "安柏", element: "pyro", rarity: 4, weapon: "bow", region: "蒙德", apiId: "amber" },
   { id: "kaeya", name: "凯亚", element: "cryo", rarity: 4, weapon: "sword", region: "蒙德", apiId: "kaeya" },
@@ -57,7 +55,8 @@ export const CHARACTERS: Character[] = [
   { id: "diona", name: "迪奥娜", element: "cryo", rarity: 4, weapon: "bow", region: "蒙德", apiId: "diona" },
   { id: "rosaria", name: "罗莎莉亚", element: "cryo", rarity: 4, weapon: "polearm", region: "蒙德", apiId: "rosaria" },
   { id: "mika", name: "米卡", element: "cryo", rarity: 4, weapon: "polearm", region: "蒙德", apiId: "mika" },
-  { id: "prune", name: "布伦妮", element: "anemo", rarity: 4, weapon: "claymore", region: "蒙德", apiId: "enka:Prune" },
+  { id: "dahlia", name: "塔利雅", element: "hydro", rarity: 4, weapon: "sword", region: "蒙德", apiId: "enka:Dahlia" },
+  { id: "prune", name: "布伦妮", element: "anemo", rarity: 4, weapon: "catalyst", region: "蒙德", apiId: "enka:Prune" },
 
   // ============ 璃月 ============
   { id: "zhongli", name: "钟离", element: "geo", rarity: 5, weapon: "polearm", region: "璃月", apiId: "zhongli" },
@@ -81,6 +80,7 @@ export const CHARACTERS: Character[] = [
   { id: "yaoyao", name: "瑶瑶", element: "dendro", rarity: 4, weapon: "polearm", region: "璃月", apiId: "yaoyao" },
   { id: "gaming", name: "嘉明", element: "pyro", rarity: 4, weapon: "claymore", region: "璃月", apiId: "gaming" },
   { id: "lanyan", name: "蓝砚", element: "anemo", rarity: 4, weapon: "catalyst", region: "璃月", apiId: "enka:Lanyan" },
+  { id: "zibai", name: "兹白", element: "geo", rarity: 5, weapon: "sword", region: "璃月", apiId: "enka:Zibai" },
 
   // ============ 稻妻 ============
   { id: "raiden", name: "雷电将军", element: "electro", rarity: 5, weapon: "polearm", region: "稻妻", apiId: "raiden" },
@@ -99,6 +99,7 @@ export const CHARACTERS: Character[] = [
   { id: "shinobu", name: "久岐忍", element: "electro", rarity: 4, weapon: "sword", region: "稻妻", apiId: "kuki-shinobu" },
   { id: "kirara", name: "绮良良", element: "dendro", rarity: 4, weapon: "sword", region: "稻妻", apiId: "kirara" },
   { id: "mizuki", name: "梦见月瑞希", element: "anemo", rarity: 5, weapon: "catalyst", region: "稻妻", apiId: "enka:Mizuki" },
+  { id: "chiori", name: "千织", element: "geo", rarity: 5, weapon: "sword", region: "稻妻", apiId: "chiori" },
 
   // ============ 须弥 ============
   { id: "nahida", name: "纳西妲", element: "dendro", rarity: 5, weapon: "catalyst", region: "须弥", apiId: "nahida" },
@@ -121,11 +122,11 @@ export const CHARACTERS: Character[] = [
   { id: "furina", name: "芙宁娜", element: "hydro", rarity: 5, weapon: "sword", region: "枫丹", apiId: "furina" },
   { id: "lyney", name: "林尼", element: "pyro", rarity: 5, weapon: "bow", region: "枫丹", apiId: "lyney" },
   { id: "wriothesley", name: "莱欧斯利", element: "cryo", rarity: 5, weapon: "catalyst", region: "枫丹", apiId: "wriothesley" },
-  { id: "navia", name: "娜维娅", element: "geo", rarity: 5, weapon: "sword", region: "枫丹", apiId: "navia" },
-  { id: "chiori", name: "千织", element: "geo", rarity: 5, weapon: "sword", region: "枫丹", apiId: "chiori" },
+  { id: "navia", name: "娜维娅", element: "geo", rarity: 5, weapon: "claymore", region: "枫丹", apiId: "navia" },
   { id: "clorinde", name: "克洛琳德", element: "electro", rarity: 5, weapon: "sword", region: "枫丹", apiId: "clorinde" },
   { id: "sigewinne", name: "希格雯", element: "hydro", rarity: 5, weapon: "bow", region: "枫丹", apiId: "sigewinne" },
   { id: "emilie", name: "艾梅莉埃", element: "dendro", rarity: 5, weapon: "polearm", region: "枫丹", apiId: "emilie" },
+  { id: "escoffier", name: "爱可菲", element: "cryo", rarity: 5, weapon: "polearm", region: "枫丹", apiId: "enka:Escoffier" },
   { id: "lynette", name: "琳妮特", element: "anemo", rarity: 4, weapon: "sword", region: "枫丹", apiId: "lynette" },
   { id: "freminet", name: "菲米尼", element: "cryo", rarity: 4, weapon: "claymore", region: "枫丹", apiId: "freminet" },
   { id: "charlotte", name: "夏洛蒂", element: "cryo", rarity: 4, weapon: "catalyst", region: "枫丹", apiId: "charlotte" },
@@ -138,32 +139,38 @@ export const CHARACTERS: Character[] = [
   { id: "xilonen", name: "希诺宁", element: "geo", rarity: 5, weapon: "sword", region: "纳塔", apiId: "enka:Xilonen" },
   { id: "chasca", name: "恰斯卡", element: "anemo", rarity: 5, weapon: "bow", region: "纳塔", apiId: "enka:Chasca" },
   { id: "citlali", name: "茜特菈莉", element: "cryo", rarity: 5, weapon: "catalyst", region: "纳塔", apiId: "enka:Citlali" },
-  { id: "varesa", name: "瓦雷莎", element: "electro", rarity: 5, weapon: "polearm", region: "纳塔", apiId: "enka:Varesa" },
-  { id: "iansan", name: "伊安珊", element: "electro", rarity: 5, weapon: "polearm", region: "纳塔", apiId: "enka:Iansan" },
-  { id: "escoffier", name: "爱可菲", element: "cryo", rarity: 5, weapon: "polearm", region: "纳塔", apiId: "enka:Escoffier" },
-  { id: "skirk", name: "丝柯克", element: "cryo", rarity: 5, weapon: "catalyst", region: "纳塔", apiId: "bwiki:skirk" },
+  { id: "varesa", name: "瓦雷莎", element: "electro", rarity: 5, weapon: "catalyst", region: "纳塔", apiId: "enka:Varesa" },
+  { id: "iansan", name: "伊安珊", element: "electro", rarity: 4, weapon: "polearm", region: "纳塔", apiId: "enka:Iansan" },
   { id: "kachina", name: "卡齐娜", element: "geo", rarity: 4, weapon: "polearm", region: "纳塔", apiId: "kachina" },
   { id: "ororon", name: "欧洛伦", element: "electro", rarity: 4, weapon: "bow", region: "纳塔", apiId: "bwiki:ororon" },
-  { id: "dahlia", name: "塔利雅", element: "hydro", rarity: 4, weapon: "sword", region: "纳塔", apiId: "enka:Dahlia" },
   { id: "ifa", name: "伊法", element: "anemo", rarity: 4, weapon: "catalyst", region: "纳塔", apiId: "enka:Ifa" },
 
   // ============ 至冬 (愚人众) ============
   { id: "tartaglia", name: "达达利亚", element: "hydro", rarity: 5, weapon: "bow", region: "至冬", apiId: "tartaglia" },
   { id: "arlecchino", name: "阿蕾奇诺", element: "pyro", rarity: 5, weapon: "polearm", region: "至冬", apiId: "arlecchino" },
   { id: "sandrone", name: "桑多涅", element: "cryo", rarity: 5, weapon: "claymore", region: "至冬", apiId: "bwiki:sandrone" },
+  { id: "odette", name: "奥黛塔", element: "cryo", rarity: 5, weapon: "sword", region: "至冬", apiId: "bwiki:odette" },
+  { id: "alyosha", name: "阿罗夏", element: "electro", rarity: 4, weapon: "polearm", region: "至冬", apiId: "bwiki:alyosha" },
+  { id: "vesna", name: "薇斯纳", element: "anemo", rarity: 5, weapon: "sword", region: "至冬", apiId: "bwiki:vesna" },
+  { id: "vodyanitsa", name: "沃雅妮莎", element: "hydro", rarity: 5, weapon: "catalyst", region: "至冬", apiId: "bwiki:vodyanitsa" },
 
-  // ============ 诺德卡莱 (6.0) ============
-  { id: "columbina", name: "哥伦比娅", element: "hydro", rarity: 5, weapon: "catalyst", region: "诺德卡莱", apiId: "enka:Columbina" },
-  { id: "zibai", name: "兹白", element: "geo", rarity: 5, weapon: "sword", region: "诺德卡莱", apiId: "enka:Zibai" },
-  { id: "illuga", name: "叶洛亚", element: "geo", rarity: 4, weapon: "polearm", region: "诺德卡莱", apiId: "enka:Illuga" },
-  { id: "flins", name: "菲林斯", element: "electro", rarity: 5, weapon: "polearm", region: "诺德卡莱", apiId: "enka:Flins" },
-  { id: "aino", name: "爱诺", element: "hydro", rarity: 4, weapon: "claymore", region: "诺德卡莱", apiId: "enka:Aino" },
-  { id: "ineffa", name: "伊涅芙", element: "electro", rarity: 5, weapon: "catalyst", region: "诺德卡莱", apiId: "enka:Ineffa" },
-  { id: "lauma", name: "菈乌玛", element: "dendro", rarity: 5, weapon: "catalyst", region: "诺德卡莱", apiId: "enka:Lauma" },
-  { id: "nefer", name: "奈芙尔", element: "dendro", rarity: 5, weapon: "catalyst", region: "诺德卡莱", apiId: "enka:Nefer" },
-  { id: "jahoda", name: "雅珂达", element: "anemo", rarity: 4, weapon: "bow", region: "诺德卡莱", apiId: "enka:Jahoda" },
-  { id: "linnea", name: "莉奈娅", element: "geo", rarity: 5, weapon: "bow", region: "诺德卡莱", apiId: "enka:Linnea" },
-  { id: "nicole", name: "尼可", element: "pyro", rarity: 5, weapon: "catalyst", region: "诺德卡莱", apiId: "enka:Nicole" },
+  // ============ 挪德卡莱 (6.x) ============
+  { id: "columbina", name: "哥伦比娅", element: "hydro", rarity: 5, weapon: "catalyst", region: "挪德卡莱", apiId: "enka:Columbina" },
+  { id: "illuga", name: "叶洛亚", element: "geo", rarity: 4, weapon: "polearm", region: "挪德卡莱", apiId: "enka:Illuga" },
+  { id: "flins", name: "菲林斯", element: "electro", rarity: 5, weapon: "polearm", region: "挪德卡莱", apiId: "enka:Flins" },
+  { id: "aino", name: "爱诺", element: "hydro", rarity: 4, weapon: "claymore", region: "挪德卡莱", apiId: "enka:Aino" },
+  { id: "ineffa", name: "伊涅芙", element: "electro", rarity: 5, weapon: "polearm", region: "挪德卡莱", apiId: "enka:Ineffa" },
+  { id: "lauma", name: "菈乌玛", element: "dendro", rarity: 5, weapon: "catalyst", region: "挪德卡莱", apiId: "enka:Lauma" },
+  { id: "nefer", name: "奈芙尔", element: "dendro", rarity: 5, weapon: "catalyst", region: "挪德卡莱", apiId: "enka:Nefer" },
+  { id: "jahoda", name: "雅珂达", element: "anemo", rarity: 4, weapon: "bow", region: "挪德卡莱", apiId: "enka:Jahoda" },
+  { id: "linnea", name: "莉奈娅", element: "geo", rarity: 5, weapon: "bow", region: "挪德卡莱", apiId: "enka:Linnea" },
+
+  // ============ 其他（无固定地区归属的特殊角色） ============
+  { id: "aloy", name: "埃洛伊", element: "cryo", rarity: 5, weapon: "bow", region: "其他", apiId: "aloy" },
+  { id: "skirk", name: "丝柯克", element: "cryo", rarity: 5, weapon: "sword", region: "其他", apiId: "bwiki:skirk" },
+  { id: "nicole", name: "尼可", element: "pyro", rarity: 5, weapon: "catalyst", region: "其他", apiId: "enka:Nicole" },
+  // 奇偶：千星奇域人偶，官方标记为特殊5★，元素随旅行者当前元素变化（此处记为 "none"）
+  { id: "manekin", name: "奇偶", element: "none", rarity: 5, weapon: "sword", region: "其他", apiId: "bwiki:manekin" },
 ];
 
 export const CHARACTER_MAP: Record<string, Character> = CHARACTERS.reduce(

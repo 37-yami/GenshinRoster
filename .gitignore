@@ -29,3 +29,10 @@ Thumbs.db
 # 锁文件（只保留 package-lock.json）
 pnpm-lock.yaml
 yarn.lock
+
+# 与本项目无关的本地文件
+fungal_train_test_bar_chart.png
+
+# Python（字体子集脚本）缓存
+__pycache__/
+*.pyc

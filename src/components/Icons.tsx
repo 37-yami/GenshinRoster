@@ -1,7 +1,7 @@
-import type { Element, WeaponType } from "../types";
+import type { CharacterElement, WeaponType } from "../types";
 
 interface IconProps {
-  element: Element;
+  element: CharacterElement;
   size?: number;
   className?: string;
 }
@@ -9,8 +9,9 @@ interface IconProps {
 /**
  * 七元素几何符号（内联 SVG，避免依赖外部资源）
  * 设计为统一的菱形底 + 元素特征图形。
+ * 另含 "none"：无固定元素的特殊角色（奇偶）使用的万用符号。
  */
-const ELEMENT_PATHS: Record<Element, React.ReactNode> = {
+const ELEMENT_PATHS: Record<CharacterElement, React.ReactNode> = {
   anemo: (
     <>
       <path d="M50 30 C 35 45, 35 55, 50 70 C 65 55, 65 45, 50 30 Z" />
@@ -51,6 +52,13 @@ const ELEMENT_PATHS: Record<Element, React.ReactNode> = {
       <path d="M50 18 L50 82 M22 35 L78 65 M22 65 L78 35" />
       <path d="M50 30 L44 36 L56 36 Z M50 70 L44 64 L56 64 Z" />
       <path d="M30 28 L34 34 M70 72 L66 66 M70 28 L66 34 M30 72 L34 66" />
+    </>
+  ),
+  none: (
+    <>
+      <circle cx="50" cy="50" r="30" />
+      <circle cx="50" cy="50" r="10" />
+      <path d="M28 28 L34 34 M72 28 L66 34 M28 72 L34 66 M72 72 L66 66" />
     </>
   ),
 };

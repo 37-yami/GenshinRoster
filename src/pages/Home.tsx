@@ -2,18 +2,18 @@ import { useMemo } from "react";
 import { CHARACTERS } from "../data/characters";
 import { useTrackerStore } from "../store/useTrackerStore";
 import { ELEMENTS, REGION_ORDER } from "../types";
-import type { Character, Element, SortBy } from "../types";
+import type { Character, CharacterElement, SortBy } from "../types";
 import { CharacterCard } from "../components/CharacterCard";
 import { StatsBar } from "../components/StatsBar";
 import { FilterBar } from "../components/FilterBar";
 import { ActionBar } from "../components/ActionBar";
 
-const ELEMENT_ORDER: Record<Element, number> = ELEMENTS.reduce(
+const ELEMENT_ORDER: Record<CharacterElement, number> = ELEMENTS.reduce(
   (acc, e, i) => {
     acc[e.key] = i;
     return acc;
   },
-  {} as Record<Element, number>,
+  { none: ELEMENTS.length } as Record<CharacterElement, number>,
 );
 
 function sortCharacters(list: Character[], sortBy: SortBy): Character[] {
@@ -63,18 +63,20 @@ export default function Home() {
 
   const ownedSet = useMemo(() => new Set(ownedIds), [ownedIds]);
 
-  // 筛选 + 排序后的可见角色
-  const visible = useMemo(() => {
+  // 筛选 + 排序后的可见角色（及其中已拥有数量）
+  const { visible, visibleOwnedCount } = useMemo(() => {
     const filtered = CHARACTERS.filter((c) => {
       if (filterElement !== "all" && c.element !== filterElement) return false;
       if (filterRarity !== "all" && c.rarity !== filterRarity) return false;
       if (searchKey.trim() && !c.name.includes(searchKey.trim())) return false;
       return true;
     });
-    return sortCharacters(filtered, sortBy);
-  }, [filterElement, filterRarity, searchKey, sortBy]);
-
-  const visibleOwnedCount = visible.filter((c) => ownedSet.has(c.id)).length;
+    const list = sortCharacters(filtered, sortBy);
+    return {
+      visible: list,
+      visibleOwnedCount: list.reduce((n, c) => n + (ownedSet.has(c.id) ? 1 : 0), 0),
+    };
+  }, [filterElement, filterRarity, searchKey, sortBy, ownedSet]);
 
   // 仅在用户显式开启分组时按地区分节
   const grouped = useMemo(() => {

@@ -13,28 +13,44 @@ function stripModuleAttributes() {
     name: 'strip-module-attributes',
     closeBundle() {
       const htmlPath = resolve(__dirname, 'dist/index.html');
+      let html: string;
       try {
-        const html = readFileSync(htmlPath, 'utf-8');
-        // 去除 type="module" crossorigin（这些属性在 file:// 下会触发 CORS 拦截）
-        // 注意：去除后变为同步 classic script，需确保 main.tsx 中用 DOMContentLoaded 包裹 createRoot
-        const updated = html.replace(
-          /<script\s+type="module"\s+crossorigin>/g,
-          '<script>',
-        );
-        writeFileSync(htmlPath, updated, 'utf-8');
-        console.log('[strip-module-attributes] 已去除 type="module" crossorigin');
+        html = readFileSync(htmlPath, 'utf-8');
       } catch (e) {
         console.warn('[strip-module-attributes] 跳过:', (e as Error).message);
+        return;
+      }
+      // 匹配任意属性顺序的 module script 起始标签（如 <script type="module" crossorigin>）
+      // 去除后变为同步 classic script，需确保 main.tsx 中用 DOMContentLoaded 包裹 createRoot
+      let count = 0;
+      const updated = html.replace(
+        /<script\b[^>]*\btype="module"[^>]*>/g,
+        () => {
+          count += 1;
+          return '<script>';
+        },
+      );
+      if (count === 0 && html.includes('type="module"')) {
+        // 存在 module script 但正则未匹配到（如 Vite 升级改变了输出格式），
+        // 静默跳过会导致 file:// 下产物白屏，因此直接让构建失败
+        throw new Error(
+          '[strip-module-attributes] 检测到 type="module" 但正则未匹配，请检查产物格式并更新插件',
+        );
+      }
+      if (count > 0) {
+        writeFileSync(htmlPath, updated, 'utf-8');
+        console.log(`[strip-module-attributes] 已去除 ${count} 处 type="module"`);
       }
     },
   };
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: './',
   build: {
-    sourcemap: 'hidden',
+    // 单文件产物无需 sourcemap，避免 dist 残留无引用的 .map 文件
+    sourcemap: false,
     // 单文件输出：所有 JS/CSS 内联到 index.html，双击即可打开
     cssCodeSplit: false,
     assetsInlineLimit: 100000000,
@@ -49,11 +65,11 @@ export default defineConfig({
   },
   plugins: [
     react({
-      babel: {
-        plugins: [
-          'react-dev-locator',
-        ],
-      },
+      // 开发定位器仅用于 dev server，避免 build 走 Babel 全量转译拖慢构建
+      babel:
+        command === 'serve'
+          ? { plugins: ['react-dev-locator'] }
+          : undefined,
     }),
     traeBadgePlugin({
       variant: 'dark',
@@ -68,4 +84,4 @@ export default defineConfig({
     viteSingleFile(),
     stripModuleAttributes(),
   ],
-})
+}))

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { CHARACTER_MAP } from "../data/characters";
 import type {
   ElementFilter,
   RarityFilter,
@@ -7,6 +8,13 @@ import type {
 } from "../types";
 
 const STORAGE_KEY = "genshin-tracker-v1";
+
+/** 实际持久化到 localStorage 的状态形状（见 partialize） */
+interface PersistedState {
+  ownedIds: string[];
+  hasInteracted: boolean;
+  groupByRegion: boolean;
+}
 
 interface TrackerState {
   /** 已拥有角色 id 集合 */
@@ -30,6 +38,7 @@ interface TrackerState {
   setSearchKey: (s: string) => void;
   setSortBy: (s: SortBy) => void;
   setGroupByRegion: (g: boolean) => void;
+  /** 将 ids 并入已拥有集合（保留现有选择，不替换） */
   selectAll: (ids: string[]) => void;
   clearAll: () => void;
   reset: () => void;
@@ -62,8 +71,8 @@ export const useTrackerStore = create<TrackerState>()(
       setGroupByRegion: (groupByRegion) => set({ groupByRegion }),
 
       selectAll: (ids) =>
-        set(() => ({
-          ownedIds: Array.from(new Set(ids)),
+        set((state) => ({
+          ownedIds: Array.from(new Set([...state.ownedIds, ...ids])),
           hasInteracted: true,
         })),
 
@@ -82,6 +91,16 @@ export const useTrackerStore = create<TrackerState>()(
     }),
     {
       name: STORAGE_KEY,
+      version: 2,
+      // 历史数据迁移：清理已从角色表中移除的陈旧 id，避免统计口径失真
+      migrate: (persisted): PersistedState => {
+        const s = persisted as Partial<PersistedState>;
+        return {
+          ownedIds: (s.ownedIds ?? []).filter((id) => id in CHARACTER_MAP),
+          hasInteracted: s.hasInteracted ?? false,
+          groupByRegion: s.groupByRegion ?? false,
+        };
+      },
       // 持久化拥有状态、交互标记、分组偏好；筛选/排序为临时状态
       partialize: (state) => ({
         ownedIds: state.ownedIds,

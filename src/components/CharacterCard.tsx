@@ -35,8 +35,9 @@ function CharacterCardBase({
   const rarityColor = character.rarity === 5 ? "#f5d76e" : "#c08bf0";
 
   // 图片加载失败时回退到元素符号
+  const portrait = portraitUrl(character.id);
   const [imgFailed, setImgFailed] = useState(false);
-  const showImage = character.apiId !== null && !imgFailed;
+  const showImage = !!portrait && !imgFailed;
 
   // 卡片背景：元素径向渐变
   const background = `radial-gradient(circle at 50% 18%, ${meta.color}33 0%, ${meta.color}14 40%, transparent 70%), linear-gradient(160deg, #1a1430 0%, #0e0b1a 100%)`;
@@ -93,7 +94,7 @@ function CharacterCardBase({
 
         {showImage ? (
           <img
-            src={portraitUrl(character.id)}
+            src={portrait}
             alt={character.name}
             loading="lazy"
             onError={() => setImgFailed(true)}

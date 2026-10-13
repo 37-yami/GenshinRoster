@@ -16,13 +16,16 @@ export type WeaponType =
 
 export type Rarity = 4 | 5;
 
+/** 角色元素：七元素，或 "none"（无固定元素的特殊角色，如奇偶，元素随旅行者变化） */
+export type CharacterElement = Element | "none";
+
 export interface Character {
   id: string;
   name: string;
-  element: Element;
+  element: CharacterElement;
   rarity: Rarity;
   weapon: WeaponType;
-  /** 上线版本区域，用于排序分组 */
+  /** 角色所属地区，用于排序分组 */
   region:
     | "蒙德"
     | "璃月"
@@ -31,8 +34,9 @@ export interface Character {
     | "枫丹"
     | "纳塔"
     | "至冬"
-    | "诺德卡莱";
-  /** 社区图片 API (genshin.jmp.blue) 的角色 ID；为 null 表示无图，回退到元素符号 */
+    | "挪德卡莱"
+    | "其他";
+  /** 头像来源的历史参考（jmp.blue / enka / bwiki），运行时仅使用本地内联头像 */
   apiId: string | null;
 }
 
@@ -41,13 +45,14 @@ export type ElementFilter = Element | "all";
 export type RarityFilter = Rarity | "all";
 
 export interface ElementMeta {
-  key: Element;
+  key: CharacterElement;
   cn: string;
   color: string;
   glow: string;
 }
 
-export const ELEMENTS: ElementMeta[] = [
+/** 七元素筛选/统计用的元数据列表（不含特殊元素 "none"） */
+export const ELEMENTS: (ElementMeta & { key: Element })[] = [
   { key: "anemo", cn: "风", color: "#74c2a8", glow: "rgba(116,194,168,0.55)" },
   { key: "geo", cn: "岩", color: "#f4b860", glow: "rgba(244,184,96,0.55)" },
   { key: "electro", cn: "雷", color: "#b78aff", glow: "rgba(183,138,255,0.55)" },
@@ -57,12 +62,20 @@ export const ELEMENTS: ElementMeta[] = [
   { key: "cryo", cn: "冰", color: "#7fd8e8", glow: "rgba(127,216,232,0.55)" },
 ];
 
-export const ELEMENT_MAP: Record<Element, ElementMeta> = ELEMENTS.reduce(
+/** 无固定元素的特殊角色（奇偶）：中性配色，不参与元素筛选与元素统计 */
+export const SPECIAL_ELEMENT_META: ElementMeta = {
+  key: "none",
+  cn: "特殊",
+  color: "#d8d4e8",
+  glow: "rgba(216,212,232,0.5)",
+};
+
+export const ELEMENT_MAP: Record<CharacterElement, ElementMeta> = ELEMENTS.reduce(
   (acc, e) => {
     acc[e.key] = e;
     return acc;
   },
-  {} as Record<Element, ElementMeta>,
+  { none: SPECIAL_ELEMENT_META } as Record<CharacterElement, ElementMeta>,
 );
 
 export const WEAPON_CN: Record<WeaponType, string> = {
@@ -81,7 +94,8 @@ export const REGION_ORDER: Character["region"][] = [
   "枫丹",
   "纳塔",
   "至冬",
-  "诺德卡莱",
+  "挪德卡莱",
+  "其他",
 ];
 
 export const REGION_META: Record<Character["region"], { color: string; cn: string }> = {
@@ -92,5 +106,6 @@ export const REGION_META: Record<Character["region"], { color: string; cn: strin
   枫丹: { color: "#4cc2f1", cn: "枫丹" },
   纳塔: { color: "#ef7938", cn: "纳塔" },
   至冬: { color: "#7fd8e8", cn: "至冬" },
-  诺德卡莱: { color: "#c8b6e8", cn: "诺德卡莱" },
+  挪德卡莱: { color: "#c8b6e8", cn: "挪德卡莱" },
+  其他: { color: "#b8c0d0", cn: "其他" },
 };

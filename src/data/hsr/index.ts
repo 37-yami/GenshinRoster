@@ -1,17 +1,16 @@
 import type { GameCharacter } from "../../types";
 import { HSR_CHARACTERS } from "./characters";
 
-/** 离线头像：构建时将 src/portraits/hsr/*.png 内联为 base64 data URI */
-const PORTRAIT_MODULES = import.meta.glob("../../portraits/hsr/*.png", {
+/** 离线头像：import.meta.glob 加载 src/portraits/hsr/*.webp（网页模式为 URL，单文件模式内联 data URI） */
+const PORTRAIT_MODULES = import.meta.glob("../../portraits/hsr/*.webp", {
   eager: true,
-  query: "?inline",
   import: "default",
 }) as Record<string, string>;
 
 const HSR_PORTRAITS: Record<string, string> = {};
 for (const [path, url] of Object.entries(PORTRAIT_MODULES)) {
-  // path 形如 '../../portraits/hsr/姬子.png' → 提取 '姬子'
-  const id = path.split("/").pop()!.replace(/\.png$/, "");
+  // path 形如 '../../portraits/hsr/姬子.webp' → 提取 '姬子'
+  const id = path.split("/").pop()!.replace(/\.webp$/, "");
   HSR_PORTRAITS[id] = url;
 }
 

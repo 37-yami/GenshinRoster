@@ -1,17 +1,16 @@
 import type { GameCharacter } from "../../types";
 import { ZZZ_CHARACTERS } from "./characters";
 
-/** 离线头像：构建时将 src/portraits/zzz/*.png 内联为 base64 data URI */
-const PORTRAIT_MODULES = import.meta.glob("../../portraits/zzz/*.png", {
+/** 离线头像：import.meta.glob 加载 src/portraits/zzz/*.webp（网页模式为 URL，单文件模式内联 data URI） */
+const PORTRAIT_MODULES = import.meta.glob("../../portraits/zzz/*.webp", {
   eager: true,
-  query: "?inline",
   import: "default",
 }) as Record<string, string>;
 
 const ZZZ_PORTRAITS: Record<string, string> = {};
 for (const [path, url] of Object.entries(PORTRAIT_MODULES)) {
-  // path 形如 '../../portraits/zzz/雅.png' → 提取 '雅'
-  const id = path.split("/").pop()!.replace(/\.png$/, "");
+  // path 形如 '../../portraits/zzz/雅.webp' → 提取 '雅'
+  const id = path.split("/").pop()!.replace(/\.webp$/, "");
   ZZZ_PORTRAITS[id] = url;
 }
 

@@ -1,21 +1,21 @@
 import type { Character } from "../../types.genshin";
 
 /**
- * 离线头像：通过 import.meta.glob 在构建时将 src/portraits/genshin/*.png 全部内联为
- * base64 data URI（配合 vite-plugin-singlefile 与 assetsInlineLimit 打包进单文件 HTML）。
+ * 离线头像：import.meta.glob 加载 src/portraits/genshin/*.webp。
+ * 单文件模式（vite build --mode single）下 assetsInlineLimit 极大，全部内联为 base64 data URI；
+ * 网页模式下为独立资源 URL，配合 <img loading="lazy"> 按需加载。
  *
- * 文件名约定：src/portraits/genshin/{character.id}.png
+ * 文件名约定：src/portraits/genshin/{character.id}.webp
  */
-const PORTRAIT_MODULES = import.meta.glob("../../portraits/genshin/*.png", {
+const PORTRAIT_MODULES = import.meta.glob("../../portraits/genshin/*.webp", {
   eager: true,
-  query: "?inline",
   import: "default",
 }) as Record<string, string>;
 
 const LOCAL_PORTRAITS: Record<string, string> = {};
 for (const [path, url] of Object.entries(PORTRAIT_MODULES)) {
-  // path 形如 '../../portraits/genshin/venti.png' → 提取 'venti'
-  const id = path.split("/").pop()!.replace(/\.png$/, "");
+  // path 形如 '../../portraits/genshin/venti.webp' → 提取 'venti'
+  const id = path.split("/").pop()!.replace(/\.webp$/, "");
   LOCAL_PORTRAITS[id] = url;
 }
 

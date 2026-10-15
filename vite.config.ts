@@ -5,13 +5,22 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// 自定义插件：在构建产物写入磁盘后，去除内联 script 的 type="module" 和 crossorigin 属性
+/**
+ * 双模式构建：
+ *  - 默认（网页版，部署 GitHub Pages）：标准多文件产物，图片/字体为独立资源，
+ *    配合 <img loading="lazy"> 按需加载，首屏秒开。输出到 dist/。
+ *  - `vite build --mode single`（离线分享版）：所有资源内联进单个 HTML，
+ *    双击即可在 file:// 下运行。输出到 dist-single/。
+ */
+const SINGLE_OUT_DIR = 'dist-single'
+
+// 自定义插件：单文件模式下去除内联 script 的 type="module" 和 crossorigin 属性
 // 这两个属性会导致 file:// 协议下浏览器 CORS 拦截，使 JS 不执行（页面纯黑）
-function stripModuleAttributes() {
+function stripModuleAttributes(outDir: string) {
   return {
     name: 'strip-module-attributes',
     closeBundle() {
-      const htmlPath = resolve(__dirname, 'dist/index.html');
+      const htmlPath = resolve(__dirname, `${outDir}/index.html`);
       let html: string;
       try {
         html = readFileSync(htmlPath, 'utf-8');
@@ -45,33 +54,47 @@ function stripModuleAttributes() {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => ({
-  base: './',
-  build: {
-    // 单文件产物无需 sourcemap，避免 dist 残留无引用的 .map 文件
-    sourcemap: false,
-    // 单文件输出：所有 JS/CSS 内联到 index.html，双击即可打开
-    cssCodeSplit: false,
-    assetsInlineLimit: 100000000,
-    chunkSizeWarningLimit: 100000000,
-    rollupOptions: {
-      output: {
-        // 输出 IIFE 格式，去除 type="module"，使产物可在 file:// 下直接执行
-        format: 'iife',
-        inlineDynamicImports: true,
-      },
+export default defineConfig(({ command, mode }) => {
+  const isSingle = mode === 'single'
+  const outDir = isSingle ? SINGLE_OUT_DIR : 'dist'
+
+  const singleOnly = isSingle
+    ? [
+        viteSingleFile(),
+        stripModuleAttributes(outDir),
+      ]
+    : []
+
+  return {
+    base: './',
+    build: {
+      outDir,
+      // 网页版无 sourcemap；单文件版也无（内联产物无需 map）
+      sourcemap: false,
+      cssCodeSplit: !isSingle,
+      // 单文件模式：所有资源内联（含头像/字体）；网页模式走默认 4KB 内联阈值
+      assetsInlineLimit: isSingle ? 100000000 : undefined,
+      chunkSizeWarningLimit: 100000000,
+      rollupOptions: isSingle
+        ? {
+            output: {
+              // 输出 IIFE 格式，去除 type="module"，使产物可在 file:// 下直接执行
+              format: 'iife',
+              inlineDynamicImports: true,
+            },
+          }
+        : undefined,
     },
-  },
-  plugins: [
-    react({
-      // 开发定位器仅用于 dev server，避免 build 走 Babel 全量转译拖慢构建
-      babel:
-        command === 'serve'
-          ? { plugins: ['react-dev-locator'] }
-          : undefined,
-    }),
-    tsconfigPaths(),
-    viteSingleFile(),
-    stripModuleAttributes(),
-  ],
-}))
+    plugins: [
+      react({
+        // 开发定位器仅用于 dev server，避免 build 走 Babel 全量转译拖慢构建
+        babel:
+          command === 'serve'
+            ? { plugins: ['react-dev-locator'] }
+            : undefined,
+      }),
+      tsconfigPaths(),
+      ...singleOnly,
+    ],
+  }
+})

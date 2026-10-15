@@ -37,18 +37,26 @@ React 18 · TypeScript · Vite 6 · Tailwind CSS 3 · Zustand 5 · react-router 
 ## 本地开发
 
 ```bash
-npm install        # 安装依赖
-npm run dev        # 启动开发服务器
-npm run build      # 构建单文件产物到 dist/index.html
-npm run preview    # 本地预览构建产物
-npm run check      # TypeScript 类型检查
-npm run lint       # ESLint
+npm install          # 安装依赖
+npm run dev          # 启动开发服务器
+npm run build        # 网页版构建（多文件按需加载，首屏秒开）→ dist/
+npm run build:single # 离线单文件版（全部资源内联）→ dist-single/index.html
+npm run preview      # 本地预览网页版构建产物
+npm run check        # TypeScript 类型检查
+npm run lint         # ESLint
 ```
+
+## 性能说明
+
+- **网页版（`dist/`，用于 GitHub Pages）**：HTML 仅约 1KB，JS gzip 后约 85KB，
+  271 张头像为独立 WebP 资源、配合 `loading="lazy"` 进入视口才加载——首屏秒开
+- **离线单文件版（`dist-single/index.html`，用于文件分享）**：约 5.5MB
+  （头像已压缩为 208px Webp，较未压缩体积减少约 75%），双击即可在完全断网环境运行
 
 ## 离线使用
 
-构建完成后，直接双击 `dist/index.html` 即可在浏览器中打开，无需联网、无需服务器。
-所有 271 张角色头像与全部字体子集均已内联进该 HTML 文件（约 22 MB）。
+构建完成后，直接双击 `dist-single/index.html` 即可在浏览器中打开，无需联网、无需服务器。
+所有 271 张角色头像与全部字体子集均已内联进该 HTML 文件。
 
 ## 部署到 GitHub Pages
 
@@ -64,8 +72,9 @@ npm run lint       # ESLint
 ├── index.html              # 入口 HTML（favicon 内联为 SVG data URI）
 ├── vite.config.ts          # Vite 配置（singlefile + 去除 module 属性以支持 file://）
 ├── scripts/
-│   ├── fetch-roster.py     # 星铁/绝区零数据+头像拉取（BWIKI SMW API，可重复执行增量更新）
-│   └── subset-fonts.py     # 字体离线子集生成（改文案/加角色后重跑）
+│   ├── fetch-roster.py        # 星铁/绝区零数据+头像拉取（BWIKI SMW API，可重复执行增量更新）
+│   ├── compress-portraits.py  # 头像压缩为 208px WebP（fetch 后必跑）
+│   └── subset-fonts.py        # 字体离线子集生成（改文案/加角色后重跑）
 ├── src/
 │   ├── main.tsx            # 入口（DOMContentLoaded 包裹，兼容 file:// 协议）
 │   ├── App.tsx             # HashRouter 路由 + 游戏 tab
@@ -88,6 +97,7 @@ npm run lint       # ESLint
 
 - **原神**：手工维护 `src/data/genshin/characters.ts`，头像放入 `src/portraits/genshin/{id}.png`
 - **星铁/绝区零**：运行 `python scripts/fetch-roster.py` 自动更新数据与头像（含增量下载）
+- **拉取/新增头像后**：运行 `python scripts/compress-portraits.py` 将 PNG 压缩为 WebP
 - **任意游戏更新后**：运行 `python scripts/subset-fonts.py` 重新生成字体子集，
   否则新增文字在离线环境下会回退到系统字体
 

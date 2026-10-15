@@ -1,13 +1,12 @@
-import type { Character } from "../types";
+import type { Character } from "../../types.genshin";
 
 /**
- * 离线头像：通过 import.meta.glob 在构建时将 src/portraits/*.png 全部内联为
+ * 离线头像：通过 import.meta.glob 在构建时将 src/portraits/genshin/*.png 全部内联为
  * base64 data URI（配合 vite-plugin-singlefile 与 assetsInlineLimit 打包进单文件 HTML）。
- * 这样 dist/index.html 双击即可在完全离线环境下显示所有角色头像。
  *
- * 文件名约定：src/portraits/{character.id}.png
+ * 文件名约定：src/portraits/genshin/{character.id}.png
  */
-const PORTRAIT_MODULES = import.meta.glob("../portraits/*.png", {
+const PORTRAIT_MODULES = import.meta.glob("../../portraits/genshin/*.png", {
   eager: true,
   query: "?inline",
   import: "default",
@@ -15,7 +14,7 @@ const PORTRAIT_MODULES = import.meta.glob("../portraits/*.png", {
 
 const LOCAL_PORTRAITS: Record<string, string> = {};
 for (const [path, url] of Object.entries(PORTRAIT_MODULES)) {
-  // path 形如 './portraits/venti.png' → 提取 'venti'
+  // path 形如 '../../portraits/genshin/venti.png' → 提取 'venti'
   const id = path.split("/").pop()!.replace(/\.png$/, "");
   LOCAL_PORTRAITS[id] = url;
 }

@@ -1,48 +1,53 @@
 import { LayoutGrid, ListTree, Search, X } from "lucide-react";
-import { ELEMENTS } from "../types";
-import type { ElementFilter, RarityFilter, SortBy } from "../types";
+import type { GameConfig, Rarity, SortBy } from "../types";
+import { RARITY_COLORS } from "../config/games";
 
 interface FilterBarProps {
-  filterElement: ElementFilter;
-  filterRarity: RarityFilter;
+  config: GameConfig;
+  filterElement: string;
+  filterRarity: Rarity | "all";
+  filterGroup: string;
+  filterTag: string;
   searchKey: string;
   sortBy: SortBy;
-  groupByRegion: boolean;
-  onElement: (f: ElementFilter) => void;
-  onRarity: (r: RarityFilter) => void;
+  groupBy: boolean;
+  onElement: (v: string) => void;
+  onRarity: (v: Rarity | "all") => void;
+  onGroup: (v: string) => void;
+  onTag: (v: string) => void;
   onSearch: (s: string) => void;
   onSort: (s: SortBy) => void;
   onToggleGroup: () => void;
 }
 
-const RARITY_OPTIONS: { value: RarityFilter; label: string; color: string }[] = [
-  { value: "all", label: "全部", color: "rgba(255,255,255,0.7)" },
-  { value: 5, label: "5★", color: "#f5d76e" },
-  { value: 4, label: "4★", color: "#c08bf0" },
-];
+const RARITY_OPTIONS: (Rarity | "all")[] = ["all", 5, 4];
 
-const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: "region", label: "按地区" },
-  { value: "rarity", label: "按稀有度" },
-  { value: "element", label: "按元素" },
-  { value: "name", label: "按名称" },
-];
+const SORT_LABELS: Record<Exclude<SortBy, "group">, string> = {
+  rarity: "按稀有度",
+  element: "按元素",
+  name: "按名称",
+};
 
 export function FilterBar({
+  config,
   filterElement,
   filterRarity,
+  filterGroup,
+  filterTag,
   searchKey,
   sortBy,
-  groupByRegion,
+  groupBy,
   onElement,
   onRarity,
+  onGroup,
+  onTag,
   onSearch,
   onSort,
   onToggleGroup,
 }: FilterBarProps) {
   return (
     <div className="glass rounded-2xl p-3 sm:p-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         {/* 元素筛选 */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="mr-1 text-xs text-white/40">元素</span>
@@ -52,7 +57,7 @@ export function FilterBar({
           >
             全部
           </FilterPill>
-          {ELEMENTS.map((e) => (
+          {config.elements.map((e) => (
             <FilterPill
               key={e.key}
               active={filterElement === e.key}
@@ -70,63 +75,89 @@ export function FilterBar({
           ))}
         </div>
 
-        {/* 右侧：稀有度 + 排序 + 搜索 */}
+        {/* 右侧：稀有度 + 分组 + 标签 + 排序 + 开关 + 搜索 */}
         <div className="flex flex-wrap items-center gap-2">
           {/* 稀有度 */}
           <div className="flex items-center gap-1 rounded-full bg-white/4 p-0.5">
             {RARITY_OPTIONS.map((r) => (
               <button
-                key={r.value}
+                key={r}
                 type="button"
-                onClick={() => onRarity(r.value)}
+                onClick={() => onRarity(r)}
                 className={[
                   "rounded-full px-3 py-1 text-xs font-medium transition-all duration-200",
-                  filterRarity === r.value
+                  filterRarity === r
                     ? "bg-white/12 text-white shadow"
                     : "text-white/50 hover:text-white/80",
                 ].join(" ")}
                 style={
-                  filterRarity === r.value ? { color: r.color } : undefined
+                  filterRarity === r && r !== "all"
+                    ? { color: RARITY_COLORS[r] }
+                    : undefined
                 }
               >
-                {r.label}
+                {r === "all" ? "全部" : config.rarityLabel[r]}
               </button>
             ))}
           </div>
 
-          {/* 排序 */}
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => onSort(e.target.value as SortBy)}
-              className="cursor-pointer appearance-none rounded-full border border-white/10 bg-white/4 py-1.5 pl-3 pr-8 text-xs text-white/80 outline-none transition-colors hover:bg-white/8 focus:border-gold/50"
+          {/* 分组筛选 */}
+          <SelectPill value={filterGroup} onChange={onGroup} label={config.groupLabel}>
+            <option value="all">全部{config.groupLabel}</option>
+            {config.groups.map((g) => (
+              <option key={g.key} value={g.key} className="bg-ink-700">
+                {g.cn}
+              </option>
+            ))}
+          </SelectPill>
+
+          {/* 次级标签筛选（武器/特性；星铁无） */}
+          {config.tagFilter && (
+            <SelectPill
+              value={filterTag}
+              onChange={onTag}
+              label={config.tagFilter.label}
             >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-ink-700">
-                  {o.label}
+              <option value="all">全部{config.tagFilter.label}</option>
+              {config.tagFilter.options.map((t) => (
+                <option key={t.key} value={t.key} className="bg-ink-700">
+                  {t.cn}
                 </option>
               ))}
-            </select>
-            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-white/40">
-              ▼
-            </span>
-          </div>
+            </SelectPill>
+          )}
 
-          {/* 分组开关：默认单张大图，开启后按地区分节 */}
+          {/* 排序 */}
+          <SelectPill value={sortBy} onChange={(v) => onSort(v as SortBy)} label="排序">
+            <option value="group" className="bg-ink-700">
+              按{config.groupLabel}
+            </option>
+            {(Object.keys(SORT_LABELS) as Exclude<SortBy, "group">[]).map((k) => (
+              <option key={k} value={k} className="bg-ink-700">
+                {SORT_LABELS[k]}
+              </option>
+            ))}
+          </SelectPill>
+
+          {/* 分组开关：默认单张大图，开启后按分组分节 */}
           <button
             type="button"
             onClick={onToggleGroup}
-            title={groupByRegion ? "当前：按地区分组，点击切换为大图" : "当前：单张大图，点击按地区分组"}
-            aria-pressed={groupByRegion}
+            title={
+              groupBy
+                ? `当前：按${config.groupLabel}分组，点击切换为大图`
+                : `当前：单张大图，点击按${config.groupLabel}分组`
+            }
+            aria-pressed={groupBy}
             className={[
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200",
-              groupByRegion
+              groupBy
                 ? "border-gold/40 bg-gold/15 text-gold hover:bg-gold/20 hover:shadow-glow"
                 : "border-white/10 bg-white/4 text-white/55 hover:bg-white/8 hover:text-white/85",
             ].join(" ")}
           >
-            {groupByRegion ? <ListTree size={14} /> : <LayoutGrid size={14} />}
-            {groupByRegion ? "分组" : "大图"}
+            {groupBy ? <ListTree size={14} /> : <LayoutGrid size={14} />}
+            {groupBy ? "分组" : "大图"}
           </button>
 
           {/* 搜索 */}
@@ -155,6 +186,34 @@ export function FilterBar({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SelectPill({
+  value,
+  onChange,
+  label,
+  children,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label}
+        className="cursor-pointer appearance-none rounded-full border border-white/10 bg-white/4 py-1.5 pl-3 pr-7 text-xs text-white/80 outline-none transition-colors hover:bg-white/8 focus:border-gold/50"
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-white/40">
+        ▼
+      </span>
     </div>
   );
 }

@@ -1,16 +1,34 @@
 import { memo, useState } from "react";
-import type { Character } from "../types";
-import { ELEMENT_MAP, WEAPON_CN } from "../types";
-import { portraitUrl } from "../data/characters";
+import type { GameConfig, GameCharacter } from "../types";
+import type { WeaponType } from "../types.genshin";
+import { RARITY_COLORS } from "../config/games";
 import { ElementIcon, WeaponIcon } from "./Icons";
 
 interface CharacterCardProps {
-  character: Character;
+  config: GameConfig;
+  character: GameCharacter;
   owned: boolean;
   /** 是否已进入交互态（决定未拥有时是否变暗） */
   hasInteracted: boolean;
   index: number;
   onToggle: (id: string) => void;
+}
+
+/** 元素/分组元数据查找（含不可筛选的特殊元素兜底） */
+function elementMetaOf(config: GameConfig, key: string) {
+  return (
+    config.elements.find((e) => e.key === key) ??
+    config.specialElementMeta?.[key] ?? { key, cn: key, color: "#d8d4e8" }
+  );
+}
+
+function groupMetaOf(config: GameConfig, key: string) {
+  return config.groups.find((g) => g.key === key) ?? { key, cn: key, color: "#b8c0d0" };
+}
+
+function tagMetaOf(config: GameConfig, key: string | null) {
+  if (!key) return null;
+  return config.tagFilter?.options.find((t) => t.key === key) ?? { key, cn: key, color: "#d8d4e8" };
 }
 
 /**
@@ -23,24 +41,32 @@ interface CharacterCardProps {
  * 失败时回退到元素几何符号。
  */
 function CharacterCardBase({
+  config,
   character,
   owned,
   hasInteracted,
   index,
   onToggle,
 }: CharacterCardProps) {
-  const meta = ELEMENT_MAP[character.element];
+  const meta = elementMetaOf(config, character.element);
+  const groupMeta = groupMetaOf(config, character.group);
+  const tagMeta = tagMetaOf(config, character.tag);
   const isDim = hasInteracted && !owned;
   const isOwnedActive = hasInteracted && owned;
-  const rarityColor = character.rarity === 5 ? "#f5d76e" : "#c08bf0";
+  const rarityColor = RARITY_COLORS[character.rarity];
+  const rarityText = config.rarityLabel[character.rarity];
 
   // 图片加载失败时回退到元素符号
-  const portrait = portraitUrl(character.id);
+  const portrait = config.portrait(character.id);
   const [imgFailed, setImgFailed] = useState(false);
   const showImage = !!portrait && !imgFailed;
 
   // 卡片背景：元素径向渐变
   const background = `radial-gradient(circle at 50% 18%, ${meta.color}33 0%, ${meta.color}14 40%, transparent 70%), linear-gradient(160deg, #1a1430 0%, #0e0b1a 100%)`;
+
+  // 悬浮提示：名 · 元素 · 稀有度 · 分组 (+ 标签)
+  const tagText = tagMeta ? ` · ${tagMeta.cn}` : "";
+  const title = `${character.name} · ${meta.cn} · ${rarityText} · ${groupMeta.cn}${tagText}`;
 
   return (
     <button
@@ -48,7 +74,7 @@ function CharacterCardBase({
       onClick={() => onToggle(character.id)}
       aria-pressed={owned}
       aria-label={`${character.name} ${owned ? "已拥有，点击取消" : "未拥有，点击标记"}`}
-      title={`${character.name} · ${meta.cn} · ${character.rarity}★ · ${WEAPON_CN[character.weapon]}`}
+      title={title}
       style={
         {
           "--glow-color":
@@ -114,7 +140,7 @@ function CharacterCardBase({
                 opacity: isDim ? 0.08 : 0.22,
               }}
             >
-              <ElementIcon element={character.element} size={92} />
+              <ElementIcon game={config.key} element={character.element} size={92} />
             </div>
             {/* 角色名首字 */}
             <div
@@ -159,9 +185,9 @@ function CharacterCardBase({
             background: "rgba(10,8,20,0.55)",
             opacity: isDim ? 0.5 : 0.95,
           }}
-          title={`${meta.cn}元素`}
+          title={`${meta.cn}${config.key === "genshin" ? "元素" : ""}`}
         >
-          <ElementIcon element={character.element} size={13} />
+          <ElementIcon game={config.key} element={character.element} size={13} />
         </div>
 
         {/* 已拥有勾选标记（右上） */}
@@ -175,7 +201,7 @@ function CharacterCardBase({
         )}
       </div>
 
-      {/* 角色名 + 稀有度 + 武器 */}
+      {/* 角色名 + 稀有度 + 标签 */}
       <div className="relative z-20 px-1 pb-1.5 pt-1">
         <div
           className={[
@@ -192,19 +218,27 @@ function CharacterCardBase({
               color: isDim ? "rgba(255,255,255,0.25)" : rarityColor,
             }}
           >
-            {"★".repeat(character.rarity)}
+            {config.key === "zzz"
+              ? rarityText
+              : "★".repeat(character.rarity)}
           </span>
-          <span
-            className="flex items-center gap-0.5 text-[9px] transition-colors duration-300"
-            style={{
-              color: isDim
-                ? "rgba(255,255,255,0.25)"
-                : "rgba(255,255,255,0.55)",
-            }}
-            title={WEAPON_CN[character.weapon]}
-          >
-            <WeaponIcon weapon={character.weapon} size={12} />
-          </span>
+          {tagMeta && (
+            <span
+              className="flex items-center gap-0.5 text-[9px] transition-colors duration-300"
+              style={{
+                color: isDim
+                  ? "rgba(255,255,255,0.25)"
+                  : "rgba(255,255,255,0.55)",
+              }}
+              title={tagMeta.cn}
+            >
+              {config.key === "genshin" ? (
+                <WeaponIcon weapon={character.tag as WeaponType} size={12} />
+              ) : (
+                tagMeta.cn
+              )}
+            </span>
+          )}
         </div>
       </div>
 

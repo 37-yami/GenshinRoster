@@ -1,44 +1,54 @@
-import { ELEMENTS } from "../types";
-import type { Character } from "../types";
+import type { GameConfig, Rarity } from "../types";
+import { RARITY_COLORS } from "../config/games";
 
 interface StatsBarProps {
-  characters: Character[];
+  config: GameConfig;
   ownedIds: string[];
   /** 当前筛选后展示的角色（用于显示"显示中"统计） */
   visibleCount: number;
   visibleOwnedCount: number;
 }
 
+/** 元素分布网格列数（Tailwind 需静态类名，故预生成映射） */
+const GRID_COLS: Record<number, string> = {
+  5: "sm:grid-cols-5",
+  6: "sm:grid-cols-6",
+  7: "sm:grid-cols-7",
+};
+
 export function StatsBar({
-  characters,
+  config,
   ownedIds,
   visibleCount,
   visibleOwnedCount,
 }: StatsBarProps) {
-  const total = characters.length;
-  const owned = ownedIds.length;
-  const percent = total > 0 ? Math.round((owned / total) * 100) : 0;
-
+  const total = config.characters.length;
   const ownedSet = new Set(ownedIds);
 
+  // 持久化数据可能含陈旧 id，统计前按角色表过滤
+  const validOwned = ownedIds.filter((id) => config.characterMap[id]);
+  const owned = validOwned.length;
+  const percent = total > 0 ? Math.round((owned / total) * 100) : 0;
+
   // 按元素统计
-  const elementStats = ELEMENTS.map((e) => {
-    const totalOfElement = characters.filter((c) => c.element === e.key).length;
-    const ownedOfElement = characters.filter(
-      (c) => c.element === e.key && ownedSet.has(c.id),
-    ).length;
-    return { ...e, totalOfElement, ownedOfElement };
+  const elementStats = config.elements.map((e) => {
+    const chars = config.characters.filter((c) => c.element === e.key);
+    const ownedOfElement = chars.filter((c) => ownedSet.has(c.id)).length;
+    return { ...e, totalOfElement: chars.length, ownedOfElement };
   });
 
   // 按稀有度统计
-  const fiveTotal = characters.filter((c) => c.rarity === 5).length;
-  const fiveOwned = characters.filter(
-    (c) => c.rarity === 5 && ownedSet.has(c.id),
-  ).length;
-  const fourTotal = characters.filter((c) => c.rarity === 4).length;
-  const fourOwned = characters.filter(
-    (c) => c.rarity === 4 && ownedSet.has(c.id),
-  ).length;
+  const rarityStats = ([5, 4] as Rarity[]).map((r) => {
+    const chars = config.characters.filter((c) => c.rarity === r);
+    const ownedOfRarity = chars.filter((c) => ownedSet.has(c.id)).length;
+    return {
+      rarity: r,
+      label: config.rarityLabel[r],
+      total: chars.length,
+      owned: ownedOfRarity,
+      color: RARITY_COLORS[r],
+    };
+  });
 
   return (
     <div className="glass rounded-2xl p-4 sm:p-5">
@@ -46,7 +56,10 @@ export function StatsBar({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-baseline gap-2">
-            <span className="font-latin text-5xl font-bold text-gold drop-shadow-[0_0_18px_rgba(245,215,110,0.4)] sm:text-6xl">
+            <span
+              className="font-latin text-5xl font-bold drop-shadow-[0_0_18px_rgba(245,215,110,0.4)] sm:text-6xl"
+              style={{ color: config.accent }}
+            >
               {owned}
             </span>
             <span className="text-2xl font-light text-white/40">/ {total}</span>
@@ -59,18 +72,15 @@ export function StatsBar({
 
         {/* 稀有度小计 */}
         <div className="flex gap-4">
-          <RarityBadge
-            label="5★"
-            owned={fiveOwned}
-            total={fiveTotal}
-            color="#f5d76e"
-          />
-          <RarityBadge
-            label="4★"
-            owned={fourOwned}
-            total={fourTotal}
-            color="#c08bf0"
-          />
+          {rarityStats.map((r) => (
+            <RarityBadge
+              key={r.rarity}
+              label={r.label}
+              owned={r.owned}
+              total={r.total}
+              color={r.color}
+            />
+          ))}
         </div>
       </div>
 
@@ -88,7 +98,11 @@ export function StatsBar({
       </div>
 
       {/* 元素分布 */}
-      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-7">
+      <div
+        className={`mt-4 grid grid-cols-4 gap-2 ${
+          GRID_COLS[Math.min(config.elements.length, 7)] ?? "sm:grid-cols-7"
+        }`}
+      >
         {elementStats.map((e) => {
           const ep =
             e.totalOfElement > 0
@@ -98,7 +112,7 @@ export function StatsBar({
             <div
               key={e.key}
               className="rounded-lg border border-white/8 bg-white/4 px-2 py-1.5"
-              title={`${e.cn}元素：${e.ownedOfElement}/${e.totalOfElement}`}
+              title={`${e.cn}：${e.ownedOfElement}/${e.totalOfElement}`}
             >
               <div className="flex items-center justify-between">
                 <span
